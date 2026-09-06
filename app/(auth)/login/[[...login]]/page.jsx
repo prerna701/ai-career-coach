@@ -18,7 +18,10 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await axios.post("/api/auth/login", { email, password });
-      if (res.data.step === "otp") {
+      if (res.data.step === "done") {
+        router.push("/dashboard");
+        router.refresh();
+      } else if (res.data.step === "otp") {
         localStorage.setItem("loginEmail", email);
         router.push("/verify-login-otp");
       } else {
@@ -76,6 +79,20 @@ export default function LoginPage() {
           Sign up
         </Link>
       </p>
+
+      <button
+        type="button"
+        onClick={() => {
+          setEmail("demo@example.com");
+          setPassword("Demo@1234");
+        }}
+        className="mt-6 w-full rounded-xl border border-white/10 bg-white/[0.03] p-4 text-left hover:bg-white/[0.06] transition"
+      >
+        <div className="text-sm font-semibold text-white">Just want to look around?</div>
+        <p className="mt-1 text-xs text-[#9298A3]">
+          Click to fill in a demo account — no signup needed.
+        </p>
+      </button>
     </>
   );
 }

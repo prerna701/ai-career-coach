@@ -1,10 +1,16 @@
 import bcrypt from 'bcryptjs';
 import prisma from "@/lib/prisma";
 import { sendEmail } from "@/lib/mailer"; // create a mailer util
+import { signJwt } from "@/lib/jwt";
+import { serialize } from "cookie";
 import crypto from "crypto";
 
+// Public demo account (see scripts/seed-demo-user.cjs) — its email isn't a
+// real inbox, so it can't receive an OTP. Skip straight to a session instead.
+const DEMO_EMAIL = "demo@example.com";
+
 export default async function handler(req, res) {
-  if (req.method !== 'POST') 
+  if (req.method !== 'POST')
     return res.status(405).json({ error: 'Method not allowed' });
 
   const { email, password } = req.body;
@@ -13,6 +19,18 @@ export default async function handler(req, res) {
 
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
+
+  if (user.email === DEMO_EMAIL) {
+    const token = signJwt({ id: user.id });
+    res.setHeader("Set-Cookie", serialize("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7,
+    }));
+    return res.status(200).json({ success: true, step: "done" });
+  }
 
   // Generate OTP
   const otp = String(Math.floor(100000 + Math.random() * 900000));

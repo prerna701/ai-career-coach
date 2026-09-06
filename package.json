@@ -10,6 +10,7 @@
     "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "seed:e2e": "node scripts/seed-e2e-user.cjs",
+    "seed:demo": "node scripts/seed-demo-user.cjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
