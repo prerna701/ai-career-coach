@@ -9,7 +9,9 @@ export default function VerifyOtpPage() {
   const router = useRouter();
   const [otp, setOtp] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const email = typeof window !== "undefined" ? localStorage.getItem("registerEmail") : "";
 
@@ -32,6 +34,24 @@ export default function VerifyOtpPage() {
     }
   };
 
+  const handleResend = async () => {
+    setResending(true);
+    setError("");
+    setInfo("");
+    try {
+      const res = await axios.post("/api/auth/send-verify-otp");
+      if (res.data.success) {
+        setInfo("A new code has been sent to your email.");
+      } else {
+        setError(res.data.message);
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || err.message);
+    } finally {
+      setResending(false);
+    }
+  };
+
   if (!email) {
     return (
       <p className="text-center text-sm text-red-400">
@@ -48,6 +68,7 @@ export default function VerifyOtpPage() {
       </p>
 
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+      {info && <p className="mt-4 text-sm text-green-400">{info}</p>}
 
       <form onSubmit={handleVerify} className="mt-8 flex flex-col gap-5">
         <AuthField
@@ -62,6 +83,18 @@ export default function VerifyOtpPage() {
           {loading ? "Verifying..." : "Verify"}
         </AuthSubmitButton>
       </form>
+
+      <p className="mt-6 text-center text-sm text-[#9298A3]">
+        Didn&apos;t get a code?{" "}
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resending}
+          className="font-medium text-indigo-400 hover:text-indigo-300 transition disabled:opacity-50"
+        >
+          {resending ? "Sending..." : "Resend code"}
+        </button>
+      </p>
     </>
   );
 }

@@ -33,16 +33,25 @@ export default async function handler(req, res) {
       })
     );
 
-    // Send welcome email
+    // Generate and send the verification OTP now, since the /verify-otp page
+    // has no way to trigger it itself -- it only lets the user enter a code.
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { verifyOtp: otp, verifyOtpExpireAt: expireAt },
+    });
+
     try {
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+        from: `"AI Career Coach" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
         to: email,
-        subject: 'Welcome to Prerna Store',
-        text: `Welcome! Your account has been created.`,
+        subject: 'Verify your AI Career Coach account',
+        text: `Welcome to AI Career Coach! Your verification code is ${otp}. It is valid for 24 hours.`,
       });
     } catch (e) {
-      console.error('Email not sent:', e.message);
+      console.error('Verification email not sent:', e.message);
     }
 
     return res.json({ success: true });
