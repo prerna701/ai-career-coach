@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getUserIdFromCookies } from "@/lib/auth";
 import { generateText } from "@/lib/ai-generate";
+import { getFallbackInsights } from "@/lib/insights-fallback";
 
 // Normalize AI enums to Prisma enums
 function normalizeInsights(insights) {
@@ -33,18 +34,20 @@ export const generateAIInsights = async (industry) => {
     Include at least 5 roles, 5 skills, 5 trends. Growth rate is a number.
   `;
 
-  const text = await generateText(prompt);
-  const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
-
   try {
+    const text = await generateText(prompt);
+    const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const parsed = JSON.parse(cleanedText);
     if (!parsed || !Array.isArray(parsed.salaryRanges) || typeof parsed.growthRate !== "number") {
       throw new Error("AI returned invalid insights shape");
     }
     return parsed;
   } catch (err) {
-    console.error("Failed to parse AI response as JSON:", cleanedText, err);
-    throw new Error("Failed to parse AI insights");
+    // Every AI provider failed (or returned something unusable) even after
+    // retries -- fall back to generic insights so onboarding/dashboard never
+    // hard-fail just because the AI couldn't be reached.
+    console.error("Failed to generate AI insights, using fallback:", err.message);
+    return getFallbackInsights();
   }
 };
 
