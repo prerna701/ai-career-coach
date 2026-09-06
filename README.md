@@ -10,7 +10,7 @@ An AI-powered career workspace: build a resume, generate tailored cover letters,
 ## Features
 
 - **Onboarding** — one-time profile setup (industry, sub-industry, experience, skills, bio) that every other feature reads from
-- **Industry Insights dashboard** — AI-generated salary ranges, demand level, market outlook, growth rate, top skills, and trends for the user's industry, charted with Recharts. Cached per-industry and refreshed on a weekly cron (Inngest), not regenerated per user
+- **Industry Insights dashboard** — AI-generated salary ranges, demand level, market outlook, growth rate, top skills, and trends for the user's industry, charted with Recharts. Cached per-industry and shared across users in the same industry, not regenerated per user
 - **Resume Builder** — structured form (contact, summary, categorized skills, experience, projects, education, certifications) with a live preview, Markdown export, and a one-page ATS-friendly PDF (three selectable templates) with real clickable links
 - **AI Cover Letter Generator** — takes a job title, company, and job description, and produces a tailored letter using the user's actual skills (prioritizing whichever ones the job description mentions)
 - **Mock Interview** — AI-generated multiple-choice technical quiz scoped to the user's industry and skills, scored on submission, with an AI-written improvement tip pinpointing the specific knowledge gap behind any wrong answers
@@ -28,7 +28,6 @@ An AI-powered career workspace: build a resume, generate tailored cover letters,
 | AI | Google Gemini → Groq → OpenAI fallback chain (see diagram below) |
 | Auth | JWT in an httpOnly cookie, bcrypt password hashing |
 | Email | Nodemailer via Brevo SMTP (or console-logged in local dev) |
-| Background jobs | Inngest (weekly industry-insight refresh) |
 | PDF export | @react-pdf/renderer |
 | E2E testing | Playwright |
 
@@ -59,7 +58,6 @@ graph TB
 
     subgraph Services["Other services"]
         Brevo["Brevo SMTP<br/>(OTP emails)"]
-        Inngest["Inngest<br/>(weekly cron)"]
     end
 
     Browser --> MW --> Pages
@@ -71,7 +69,6 @@ graph TB
     Actions --> Gemini
     Gemini -. on failure .-> Groq
     Groq -. on failure .-> OpenAI
-    Inngest -->|refreshes weekly| Actions
 ```
 
 ## User journey
@@ -252,7 +249,6 @@ Visit whatever URL Next.js prints (usually `http://localhost:3000`, but it'll pi
 
 ### Known limitations
 - **Profile picture upload** writes to the local filesystem (`public/uploads`), which doesn't persist on Vercel's serverless functions. Works fine in local dev / on a traditional server; needs Vercel Blob or S3 to work in production.
-- **Weekly industry-insight refresh** (Inngest) requires a free [Inngest Cloud](https://inngest.com) account and `INNGEST_EVENT_KEY` / `INNGEST_SIGNING_KEY`. Everything else works without it — insights just won't auto-refresh weekly.
 
 ---
 
@@ -263,7 +259,6 @@ ai-career-coach/
 ├── app/
 │   ├── (auth)/              # login, register, OTP verification, password reset
 │   ├── (main)/              # onboarding, dashboard, resume, cover letter, interview
-│   ├── api/inngest/         # Inngest webhook endpoint
 │   ├── layout.js            # root layout, forced dark theme
 │   └── page.jsx             # landing page
 ├── actions/                 # server actions (data + AI generation)

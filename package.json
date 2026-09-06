@@ -58,7 +58,6 @@
     "framer-motion": "^12.23.12",
     "geist": "^1.4.2",
     "html2pdf.js": "^0.12.1",
-    "inngest": "^3.41.0",
     "input-otp": "^1.4.2",
     "joose": "^3.50.0",
     "jsonwebtoken": "^9.0.2",
@@ -86,7 +85,6 @@
     "@tailwindcss/postcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
-    "inngest-cli": "^1.11.13",
     "prisma": "^6.14.0",
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.6"
