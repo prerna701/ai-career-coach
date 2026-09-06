@@ -3,10 +3,9 @@
 import prisma from "@/lib/prisma";
 import { getUserIdFromCookies } from "@/lib/auth";
 import { generateText } from "@/lib/ai-generate";
+import { getFallbackQuiz } from "@/lib/quiz-fallback";
 
-/**
- * Generate a quiz for the logged-in user
- */
+
 export async function generateQuiz() {
   const userId = await getUserIdFromCookies();
   if (!userId) throw new Error("Unauthorized");
@@ -46,10 +45,17 @@ export async function generateQuiz() {
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const quiz = JSON.parse(cleanedText);
 
+    if (!Array.isArray(quiz.questions) || quiz.questions.length === 0) {
+      throw new Error("AI returned no questions");
+    }
+
     return quiz.questions;
   } catch (error) {
-    console.error("Error generating quiz:", error);
-    throw new Error("Failed to generate quiz questions");
+    // Every AI provider failed (or returned something unusable) even after
+    // retries -- fall back to a fixed, domain-agnostic question set so the
+    // quiz feature never hard-fails in production.
+    console.error("Error generating quiz, using fallback questions:", error);
+    return getFallbackQuiz(3);
   }
 }
 
