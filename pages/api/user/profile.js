@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import formidable from "formidable";
+import { IncomingForm } from "formidable";
 import path from "path";
 import { parse } from "cookie";
 import { verifyJwt } from "@/lib/jwt";
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
     try {
       await ensureUploadDir();
 
-      const form = new formidable.IncomingForm({
+      const form = new IncomingForm({
         uploadDir: UPLOAD_DIR,
         keepExtensions: true,
         maxFileSize: 5 * 1024 * 1024, // 5MB

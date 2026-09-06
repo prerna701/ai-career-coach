@@ -2,10 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { getUserIdFromCookies } from "@/lib/auth";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest"});
+import { generateText } from "@/lib/ai-generate";
 
 /**
  * Generate a quiz for the logged-in user
@@ -45,8 +42,7 @@ export async function generateQuiz() {
   `;
 
   try {
-    const result = await model.generateContent(prompt);
-    const text = result.response.text();
+    const text = await generateText(prompt);
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const quiz = JSON.parse(cleanedText);
 
@@ -101,8 +97,7 @@ export async function saveQuizResult(questions, answers, score) {
     `;
 
     try {
-      const tipResult = await model.generateContent(improvementPrompt);
-      improvementTip = tipResult.response.text().trim();
+      improvementTip = (await generateText(improvementPrompt)).trim();
       console.log("Improvement tip:", improvementTip);
     } catch (error) {
       console.error("Error generating improvement tip:", error);

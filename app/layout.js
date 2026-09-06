@@ -1,7 +1,7 @@
 import "./globals.css";
 import { GeistSans, GeistMono } from "geist/font"; // ✅ correct import
 import { ThemeProvider } from "@/components/theme-provider";
-import Header from "@/components/Header"; 
+import SiteChrome from "@/components/site-chrome";
 import { Toaster } from "@/components/ui/sonner"
 
 export const metadata = {
@@ -18,17 +18,11 @@ export default function RootLayout({ children }) {
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
-          enableSystem
+          forcedTheme="dark"
           disableTransitionOnChange
         >
-          <Header />
-          <main className="min-h-screen pt-16">{children}</main>
+          <SiteChrome>{children}</SiteChrome>
           <Toaster richColors/>
-          <footer className="bg-muted/50 py-12">
-            <div className="container mx-auto px-4 text-center text-gray-200">
-              <p>Made by Prerna Arora</p>
-            </div>
-          </footer>
         </ThemeProvider>
       </body>
     </html>

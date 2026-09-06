@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function ResumeLayout({ children }) {
   return (
-    <section className="min-h-screen bg-gray-50">
+    <section className="min-h-screen bg-background">
       <div className="max-w-5xl mx-auto p-6">{children}</div>
     </section>
   );

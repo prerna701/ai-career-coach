@@ -25,13 +25,35 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import useFetch from "@/hooks/use-fetch";
 import { updateUser } from "@/actions/user";
-import { Loader2, Moon, Sun } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-const OnboardingForm = ({ industries }) => {
-  const [selectedIndustry, setSelectedIndustry] = useState(null);
+// Stored industry is a slug like "tech-software-development" (industryId + "-" + slugified subIndustry).
+// Reverse it back into { industryId, subIndustryLabel } so the edit form can pre-select both dropdowns.
+function resolveIndustry(storedIndustry, industries) {
+  if (!storedIndustry) return { industryId: "", subIndustryLabel: "" };
+
+  const slugify = (s) => s.toLowerCase().replace(/ /g, "-");
+
+  for (const ind of industries) {
+    const prefix = `${ind.id}-`;
+    if (storedIndustry.startsWith(prefix)) {
+      const remainder = storedIndustry.slice(prefix.length);
+      const match = ind.subIndustries?.find((s) => slugify(s) === remainder);
+      if (match) return { industryId: ind.id, subIndustryLabel: match };
+    }
+  }
+  return { industryId: "", subIndustryLabel: "" };
+}
+
+const OnboardingForm = ({ industries, initialData = null }) => {
+  const isEditing = !!initialData?.industry;
+  const resolved = resolveIndustry(initialData?.industry, industries);
+
+  const [selectedIndustry, setSelectedIndustry] = useState(
+    industries.find((ind) => ind.id === resolved.industryId) || null
+  );
   const [step, setStep] = useState(1);
-  const [darkMode, setDarkMode] = useState(false);
   const router = useRouter();
 
   const {
@@ -49,11 +71,11 @@ const OnboardingForm = ({ industries }) => {
   } = useForm({
     resolver: zodResolver(onboardingSchema),
     defaultValues: {
-      industry: "",
-      subIndustry: "",
-      experience: "",
-      skills: "",
-      bio: "",
+      industry: resolved.industryId,
+      subIndustry: resolved.subIndustryLabel,
+      experience: initialData?.experience != null ? String(initialData.experience) : "",
+      skills: initialData?.skills?.length ? initialData.skills.join(", ") : "",
+      bio: initialData?.bio || "",
     },
   });
 
@@ -73,8 +95,11 @@ const OnboardingForm = ({ industries }) => {
   };
 
   useEffect(() => {
-    if (updateResult?.success && !updateLoading) {
-      toast.success("Profile completed successfully");
+    // updateUser() resolves with the updated user record on success (no `.success`
+    // flag) and useFetch only ever sets `data` on the success path, so a defined
+    // result here means the save went through.
+    if (updateResult && !updateLoading) {
+      toast.success(isEditing ? "Profile updated successfully" : "Profile completed successfully");
       router.push("/dashboard");
       router.refresh();
     }
@@ -86,32 +111,22 @@ const OnboardingForm = ({ industries }) => {
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   return (
-    <div className={`${darkMode ? "dark" : ""} transition-colors`}>
+    <div className="dark transition-colors">
       {/* Background */}
       <div className="relative min-h-screen w-full bg-[url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=1600')] bg-cover bg-center">
-        <div className="absolute inset-0 bg- qblack/50 dark:bg-black/70" />
-
-        {/* Theme toggle */}
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="absolute top-6 right-6 z-20 p-2 rounded-full bg-white/80 dark:bg-gray-800 shadow"
-        >
-          {darkMode ? (
-            <Sun className="h-5 w-5 text-yellow-400" />
-          ) : (
-            <Moon className="h-5 w-5 text-gray-700" />
-          )}
-        </button>
+        <div className="absolute inset-0 bg-black/70" />
 
         {/* Layout */}
         <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between px-6 lg:px-20 py-16 lg:py-24 h-full text-white dark:text-gray-200">
           {/* Left panel */}
           <div className="max-w-lg space-y-6 mb-10 lg:mb-0">
             <h1 className="text-5xl font-bold">
-              Unlock Your Career Potential 
+              {isEditing ? "Update Your Profile" : "Unlock Your Career Potential"}
             </h1>
             <p className="text-lg opacity-90">
-              Let’s complete your profile in just a few steps.
+              {isEditing
+                ? "Change your industry, experience, skills, or bio."
+                : "Let’s complete your profile in just a few steps."}
             </p>
 
             {/* Progress bar */}
@@ -150,6 +165,7 @@ const OnboardingForm = ({ industries }) => {
                     <div className="space-y-2">
                       <Label htmlFor="industry">Industry</Label>
                       <Select
+                        value={watchIndustry || undefined}
                         onValueChange={(value) => {
                           setValue("industry", value);
                           setSelectedIndustry(
@@ -180,6 +196,7 @@ const OnboardingForm = ({ industries }) => {
                       <div className="space-y-2">
                         <Label htmlFor="subIndustry">Specialization</Label>
                         <Select
+                          value={watch("subIndustry") || undefined}
                           onValueChange={(value) => {
                             setValue("subIndustry", value);
                           }}
@@ -295,6 +312,8 @@ const OnboardingForm = ({ industries }) => {
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                           Saving...
                         </>
+                      ) : isEditing ? (
+                        "Save Changes"
                       ) : (
                         "Complete Profile"
                       )}

@@ -1,18 +1,14 @@
 import { industries } from "@/data/industries";
-import { getUserOnboardingStatus } from "@/actions/user";
+import { getUserProfile } from "@/actions/user";
 import OnboardingForm from "./_components/onboarding-form";
-import { redirect } from "next/navigation";
 
-const OnboardingPage = async() => {
-    const {isOnboarded} =  await getUserOnboardingStatus();
-    if(isOnboarded){
-        redirect("/dashboard");
-    }
+const OnboardingPage = async () => {
+    const profile = await getUserProfile();
     return (
         <main>
-            <OnboardingForm industries={industries}/>
+            <OnboardingForm industries={industries} initialData={profile} />
         </main>
     )
-  
+
 };
 export default OnboardingPage;

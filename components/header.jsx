@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { FileText, PenBox, GraduationCap, Sun, Moon } from "lucide-react";
+import { FileText, PenBox, GraduationCap, Settings, ClipboardList } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,12 +19,10 @@ import {
   User,
   LogOut,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 
 export default function Header() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
     async function checkAuth() {
@@ -67,19 +65,6 @@ export default function Header() {
         </Link>
 
         <div className="flex items-center gap-3">
-          {/* Theme Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          >
-            {theme === "dark" ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )}
-          </Button>
-
           {isAuthenticated ? (
             <>
               {/* Dashboard shortcut */}
@@ -102,6 +87,22 @@ export default function Header() {
 
                 <DropdownMenuContent className="w-56">
                   <DropdownMenuLabel>Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem asChild>
+                    <Link href={"/onboarding"} className="flex items-center gap-2">
+                      <ClipboardList className="h-4 w-4" />
+                      <span>Onboarding Data</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href={"/profile"} className="flex items-center gap-2">
+                      <Settings className="h-4 w-4" />
+                      <span>Profile Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+
                   <DropdownMenuSeparator />
 
                   <DropdownMenuItem asChild>

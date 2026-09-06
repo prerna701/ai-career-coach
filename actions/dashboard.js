@@ -3,11 +3,7 @@
 import prisma from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { getUserIdFromCookies } from "@/lib/auth";
-import { GoogleGenerativeAI } from "@google/generative-ai";
-
-// Google Gemini setup
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest"});
+import { generateText } from "@/lib/ai-generate";
 
 // Normalize AI enums to Prisma enums
 function normalizeInsights(insights) {
@@ -37,9 +33,7 @@ export const generateAIInsights = async (industry) => {
     Include at least 5 roles, 5 skills, 5 trends. Growth rate is a number.
   `;
 
-  const result = await model.generateContent(prompt);
-  const text = result.response.text();
-
+  const text = await generateText(prompt);
   const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
 
   try {

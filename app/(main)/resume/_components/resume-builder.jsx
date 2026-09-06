@@ -2,14 +2,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 import ContactForm from "./forms/ContactForm";
 import SummaryForm from "./forms/SummaryForm";
 import SkillsForm from "./forms/SkillsForm";
+import CertificationsForm from "./forms/CertificationsForm";
 import { EntryForm } from "./forms/EntryForm";
 
 import MarkdownPreview from "./preview/MarkdownPreview";
@@ -37,14 +40,23 @@ export default function ResumeBuilder({ initialContent = null }) {
   }, [data]);
 
   function computeMarkdown(d) {
+    const c = d.contact || {};
+    const contactLine = [c.location, c.mobile, c.email].filter(Boolean).join("  ·  ");
+    const links = [c.github, c.linkedin, c.portfolio].filter(Boolean).join("  ·  ");
+    const skills = Array.isArray(d.skills) ? d.skills : d.skills ? [d.skills] : [];
+    const certifications = Array.isArray(d.certifications) ? d.certifications : [];
+
     return [
-      d.contact?.fullName ? `# ${d.contact.fullName}` : "",
-      d.contact ? `${d.contact.email || ""} ${d.contact.mobile ? "| " + d.contact.mobile : ""}` : "",
-      d.summary ? `\n\n## Professional Summary\n\n${d.summary}` : "",
-      d.skills && d.skills.length ? `\n\n## Skills\n\n${Array.isArray(d.skills) ? d.skills.join(", ") : d.skills}` : "",
-      entriesToMarkdown(d.experience || [], "Work Experience"),
-      entriesToMarkdown(d.education || [], "Education"),
+      c.fullName ? `# ${c.fullName}` : "",
+      c.title ? `${c.title}` : "",
+      contactLine,
+      links,
+      d.summary ? `\n\n## Summary\n\n${d.summary}` : "",
+      skills.length ? `\n\n## Technical Skills\n\n${skills.map((s) => `- ${s}`).join("\n")}` : "",
+      entriesToMarkdown(d.experience || [], "Experience"),
       entriesToMarkdown(d.projects || [], "Projects"),
+      entriesToMarkdown(d.education || [], "Education"),
+      certifications.length ? `\n\n## Certifications\n\n${certifications.join("  |  ")}` : "",
     ].filter(Boolean).join("\n\n");
   }
 
@@ -64,16 +76,16 @@ export default function ResumeBuilder({ initialContent = null }) {
         <h1 className="text-3xl font-bold">Resume Builder — Placement Ready</h1>
 
         <div className="flex gap-2 items-center">
-          <select
-            value={template}
-            onChange={(e) => setTemplate(e.target.value)}
-            className="border rounded px-2 py-1"
-            aria-label="Template"
-          >
-            <option value="modern">Modern</option>
-            <option value="minimal">Minimal</option>
-            <option value="classic">Classic</option>
-          </select>
+          <Select value={template} onValueChange={setTemplate}>
+            <SelectTrigger className="w-32" aria-label="Template">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="modern">Modern</SelectItem>
+              <SelectItem value="minimal">Minimal</SelectItem>
+              <SelectItem value="classic">Classic</SelectItem>
+            </SelectContent>
+          </Select>
 
           <Button onClick={handleSave} disabled={isSaving}>
             {isSaving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Saving...</> : <><Save className="h-4 w-4 mr-2" />Save</>}
@@ -95,12 +107,13 @@ export default function ResumeBuilder({ initialContent = null }) {
               <ContactForm data={data} setData={setData} />
               <SummaryForm data={data} setData={setData} />
               <SkillsForm data={data} setData={setData} />
+              <CertificationsForm data={data} setData={setData} />
             </div>
 
             <div className="space-y-6">
               <EntryForm label="Experience" field="experience" data={data} setData={setData} />
-              <EntryForm label="Education" field="education" data={data} setData={setData} />
               <EntryForm label="Projects" field="projects" data={data} setData={setData} />
+              <EntryForm label="Education" field="education" data={data} setData={setData} />
             </div>
           </div>
         </TabsContent>
@@ -118,6 +131,15 @@ export default function ResumeBuilder({ initialContent = null }) {
           </div>
         </TabsContent>
       </Tabs>
+
+      <div className="flex justify-end pt-2 border-t">
+        <Link href="/ai-cover-letter/new">
+          <Button variant="outline" className="gap-2">
+            Next: Create Cover Letter
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

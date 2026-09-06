@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     // Send welcome email
     try {
       await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+        from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
         to: email,
         subject: 'Welcome to Prerna Store',
         text: `Welcome! Your account has been created.`,

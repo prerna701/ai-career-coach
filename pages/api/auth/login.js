@@ -23,8 +23,13 @@ export default async function handler(req, res) {
     data: { loginOtp: otp, loginOtpExpireAt: expireAt }
   });
 
-  // Send OTP via email
-  await sendEmail(user.email, "Login OTP", `Your OTP is ${otp}`);
+  // Send OTP via email (don't let a broken/unconfigured SMTP server 500 the login request)
+  try {
+    await sendEmail(user.email, "Login OTP", `Your OTP is ${otp}`);
+  } catch (err) {
+    console.error("Failed to send login OTP email:", err.message);
+    console.log(`[DEV FALLBACK] Login OTP for ${user.email}: ${otp}`);
+  }
 
   res.status(200).json({ success: true, step: "otp", email });
 } ;

@@ -32,7 +32,8 @@ export async function updateUser(data) {
           });
         }
 
-        // Now update the user
+        // Now update the user, repointing them at the insight row for the
+        // (possibly new) industry so the dashboard doesn't keep showing stale data.
         const updatedUser = await tx.user.update({
           where: { id: userId },
           data: {
@@ -40,6 +41,7 @@ export async function updateUser(data) {
             experience: data.experience,
             bio: data.bio,
             skills: data.skills,
+            industryInsightId: industryInsight.id,
           },
         });
 
@@ -54,6 +56,18 @@ export async function updateUser(data) {
     console.error("Error updating user and industry:", error.message);
     throw new Error("Failed to update profile");
   }
+}
+
+export async function getUserProfile() {
+  const userId = await getUserIdFromCookies();
+  if (!userId) throw new Error("Unauthorized");
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { industry: true, experience: true, skills: true, bio: true },
+  });
+
+  return user;
 }
 
 export async function getUserOnboardingStatus() {

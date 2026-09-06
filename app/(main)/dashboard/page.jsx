@@ -34,7 +34,11 @@
 // export default DashboardPage;
 import { getIndustryInsights } from "@/actions/dashboard";
 import DashboardView from "./_components/dashboard-view";
-import { getUserOnboardingStatus } from "@/actions/user";
+import ToolsOverview from "./_components/tools-overview";
+import { getUserOnboardingStatus, getUserProfile } from "@/actions/user";
+import { getResume } from "@/actions/resume";
+import { getCoverLetters } from "@/actions/cover-letter";
+import { getAssessments } from "@/actions/interview";
 import { redirect } from "next/navigation";
 
 export default async function DashboardPage() {
@@ -46,10 +50,22 @@ export default async function DashboardPage() {
     redirect("/onboarding");
   }
 
-  const insights = await getIndustryInsights();
+  const [insights, profile, resume, coverLetters, assessments] = await Promise.all([
+    getIndustryInsights(),
+    getUserProfile(),
+    getResume(),
+    getCoverLetters(),
+    getAssessments(),
+  ]);
 
   return (
-    <div className="container mx-auto">
+    <div className="container mx-auto space-y-6">
+      <ToolsOverview
+        resume={resume}
+        coverLetters={coverLetters}
+        assessments={assessments}
+        profile={profile}
+      />
       <DashboardView insights={insights} />
     </div>
   );

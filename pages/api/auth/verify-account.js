@@ -1,5 +1,5 @@
 import prisma from '@/lib/prisma';
-import { getUserIdFromReq } from './_util';
+import { getUserIdFromReq } from '@/lib/auth';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ success: false, message: 'Method not allowed' });
@@ -31,19 +31,5 @@ export default async function handler(req, res) {
     return res.json({ success: true, message: 'Email verified successfully' });
   } catch (error) {
     return res.json({ success: false, message: error.message });
-  }
-}
-
-// local util
-function getUserIdFromReq(req) {
-  const cookieHeader = req.headers.cookie || '';
-  const token = cookieHeader.split('token=').pop()?.split(';')[0];
-  if (!token) return null;
-  try {
-    const { verifyJwt } = require('@/lib/jwt');
-    const payload = verifyJwt(token);
-    return payload?.id || null;
-  } catch {
-    return null;
   }
 }

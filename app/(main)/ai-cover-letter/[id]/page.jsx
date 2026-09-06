@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCoverLetter } from "@/actions/cover-letter";
 import CoverLetterPreview from "../_components/cover-letter-preview";
@@ -24,6 +24,15 @@ export default async function EditCoverLetterPage({ params }) {
       </div>
 
       <CoverLetterPreview content={coverLetter?.content} />
+
+      <div className="flex justify-end pt-6 mt-6 border-t">
+        <Link href="/interview/mock">
+          <Button variant="outline" className="gap-2">
+            Next: Practice Interview
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

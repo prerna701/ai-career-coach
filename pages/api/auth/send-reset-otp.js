@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 
     try {
       await transporter.sendMail({
-        from: `"Prerna Store" <${process.env.EMAIL_USER}>`,
+        from: `"AI Career Coach" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
         to: user.email,
         subject: 'Password Reset OTP',
         text: `Your OTP for password reset is ${otp}. It is valid for 24 hours.`

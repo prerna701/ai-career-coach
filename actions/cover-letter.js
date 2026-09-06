@@ -102,8 +102,8 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 const generateTemplateCoverLetter = (data, user) => {
   const { companyName, jobTitle, jobDescription } = data;
   
-  // Extract skills from job description
-  const skills = extractRelevantSkills(jobTitle, jobDescription);
+  // Extract skills from job description, preferring the user's real profile skills
+  const skills = extractRelevantSkills(jobTitle, jobDescription, user.skills);
   const experience = user.experience || 'several';
   
   return `
@@ -139,19 +139,25 @@ Sincerely,
   `.trim();
 };
 
-// SIMPLE SKILL EXTRACTION
-const extractRelevantSkills = (jobTitle, jobDescription) => {
+// SKILL EXTRACTION — prefers the user's real profile skills over a generic guess
+const extractRelevantSkills = (jobTitle, jobDescription, userSkills) => {
+  if (Array.isArray(userSkills) && userSkills.length > 0) {
+    const jdLower = `${jobTitle} ${jobDescription}`.toLowerCase();
+    const mentioned = userSkills.filter((s) => jdLower.includes(s.toLowerCase()));
+    const rest = userSkills.filter((s) => !mentioned.includes(s));
+    return [...mentioned, ...rest].slice(0, 8);
+  }
+
   const jobLower = jobTitle.toLowerCase();
   const descLower = jobDescription.toLowerCase();
-  
-  // Define skill sets
+
+  // Fallback when the user hasn't set up a skills profile yet
   const skillSets = {
     frontend: ['JavaScript', 'React', 'HTML', 'CSS', 'TypeScript', 'Next.js', 'Vue', 'Angular'],
     backend: ['Node.js', 'Python', 'MongoDB', 'SQL', 'REST APIs', 'Express', 'Django', 'Java'],
     fullstack: ['JavaScript', 'React', 'Node.js', 'Python', 'MongoDB', 'HTML', 'CSS']
   };
 
-  // Determine role type
   let roleType = 'fullstack';
   if (jobLower.includes('frontend') || descLower.includes('react') || descLower.includes('javascript')) {
     roleType = 'frontend';
